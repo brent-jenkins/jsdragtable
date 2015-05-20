@@ -31,9 +31,14 @@ module Anterec {
                 cells[cells.length] = cell;
             });
 
+            var userEvent = event;
+            if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
+                userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+            }
+
             this.draggableContainer = $("<div/>");
             this.draggableContainer.addClass("dragtable-contents");
-            this.draggableContainer.css({ position: "absolute", left: event.pageX + this.offsetX, top: event.pageY + this.offsetY });
+            this.draggableContainer.css({ position: "absolute", left: userEvent.pageX + this.offsetX, top: userEvent.pageY + this.offsetY });
 
             var dragtable = this.createDraggableTable(header);
 
@@ -52,8 +57,14 @@ module Anterec {
         }
 
         private moveColumn(header: JQuery, event: Event): void {
+            event.preventDefault();
             if (this.selectedHeader !== null) {
-                this.draggableContainer.css({ left: event.pageX + this.offsetX, top: event.pageY + this.offsetY });
+                var userEvent = event;
+                if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
+                    userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+                }
+
+                this.draggableContainer.css({ left: userEvent.pageX + this.offsetX, top: userEvent.pageY + this.offsetY });
             }
         }
 
