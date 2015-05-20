@@ -17,7 +17,7 @@ module Anterec {
                 $(header).off("mousedown touchstart");
                 $(header).off("mouseup touchend");
                 $(header).on("mousedown touchstart", (event: Event) => { this.selectColumn($(header), event); });
-                $(header).on("mouseup touchend", () => { this.dropColumn($(header)); });
+                $(header).on("mouseup touchend", (event: Event) => { this.dropColumn($(header), event); });
             });
             $(this.container).on("mouseup touchend", () => { this.cancelColumn(); });
         }
@@ -68,10 +68,17 @@ module Anterec {
             }
         }
 
-        private dropColumn(header: JQuery): void {
+        private dropColumn(header: JQuery, event: Event): void {
             var sourceIndex = this.selectedHeader.index() + 1;
-            var targetIndex = header.index() + 1;
+            var targetIndex = $(event.target).index() + 1;
             var tableColumns = $(this.container).find("th").length;
+
+            var userEvent = event;
+            if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
+                userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+                header = $(document.elementFromPoint(userEvent.clientX, userEvent.clientY));
+                targetIndex = $(header).prevAll().length + 1;
+            }
 
             if (sourceIndex !== targetIndex) {
                 var cells: Element[] = [];
