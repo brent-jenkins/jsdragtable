@@ -1,6 +1,6 @@
 ///<reference path="../typings/jquery/jquery.d.ts"/>
 module Anterec {
-    export class DragTable {
+    export class JsDragTable {
         private container: JQuery;
         private selectedHeader: JQuery;
         private draggableContainer: JQuery;
@@ -23,6 +23,8 @@ module Anterec {
         }
 
         private selectColumn(header: JQuery, event: Event): void {
+            event.preventDefault();
+            var userEvent = new UserEvent(event);
             this.selectedHeader = header;
             var sourceIndex = this.selectedHeader.index() + 1;
             var cells: Element[] = [];
@@ -31,52 +33,43 @@ module Anterec {
                 cells[cells.length] = cell;
             });
 
-            var userEvent = event;
-            if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
-                userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
-            }
-
             this.draggableContainer = $("<div/>");
-            this.draggableContainer.addClass("dragtable-contents");
-            this.draggableContainer.css({ position: "absolute", left: userEvent.pageX + this.offsetX, top: userEvent.pageY + this.offsetY });
+            this.draggableContainer.addClass("jsdragtable-contents");
+            this.draggableContainer.css({ position: "absolute", left: userEvent.event.pageX + this.offsetX, top: userEvent.event.pageY + this.offsetY });
 
             var dragtable = this.createDraggableTable(header);
 
             $(cells).each((cellIndex: any, cell: Element) => {
-                var row = $("<tr/>");
-                var content = $("<td/>");
-                $(content).html($(cells[cellIndex]).html());
-                $(row).append(content);
-                $(dragtable).append(row);
+                var tr = $("<tr/>");
+                var td = $("<td/>");
+                $(td).html($(cells[cellIndex]).html());
+                $(tr).append(td);
+                $(dragtable).find("tbody").append(tr);
             });
 
             this.draggableContainer.append(dragtable);
             $("body").append(this.draggableContainer);
             $(this.container).on("mousemove touchmove", (event: Event) => { this.moveColumn($(header), event); });
-            $(".dragtable-contents").on("mouseup touchend", () => { this.cancelColumn(); });
+            $(".jsdragtable-contents").on("mouseup touchend", () => { this.cancelColumn(); });
         }
 
         private moveColumn(header: JQuery, event: Event): void {
             event.preventDefault();
             if (this.selectedHeader !== null) {
-                var userEvent = event;
-                if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
-                    userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
-                }
-
-                this.draggableContainer.css({ left: userEvent.pageX + this.offsetX, top: userEvent.pageY + this.offsetY });
+                var userEvent = new UserEvent(event);
+                this.draggableContainer.css({ left: userEvent.event.pageX + this.offsetX, top: userEvent.event.pageY + this.offsetY });
             }
         }
 
         private dropColumn(header: JQuery, event: Event): void {
+            event.preventDefault();
             var sourceIndex = this.selectedHeader.index() + 1;
             var targetIndex = $(event.target).index() + 1;
             var tableColumns = $(this.container).find("th").length;
 
-            var userEvent = event;
-            if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
-                userEvent = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
-                header = $(document.elementFromPoint(userEvent.clientX, userEvent.clientY));
+            var userEvent = new UserEvent(event);
+            if (userEvent.isTouchEvent) {
+                header = $(document.elementFromPoint(userEvent.event.clientX, userEvent.event.clientY));
                 targetIndex = $(header).prevAll().length + 1;
             }
 
@@ -84,7 +77,6 @@ module Anterec {
                 var cells: Element[] = [];
                 $(this.container).find("tr td:nth-child(" + sourceIndex + ")").each((cellIndex: Number, cell: Element) => {
                     cells[cells.length] = cell;
-                    var row = $(cell).closest("tr");
                     $(cell).remove();
                     $(this.selectedHeader).remove();
                 });
@@ -101,7 +93,7 @@ module Anterec {
                 }
 
                 $(this.container).off("mousemove touchmove");
-                $(".dragtable-contents").remove();
+                $(".jsdragtable-contents").remove();
                 this.draggableContainer = null;
                 this.selectedHeader = null;
                 this.rebind();
@@ -110,26 +102,26 @@ module Anterec {
 
         private cancelColumn(): void {
             $(this.container).off("mousemove touchmove");
-            $(".dragtable-contents").remove();
+            $(".jsdragtable-contents").remove();
             this.draggableContainer = null;
             this.selectedHeader = null;
             this.rebind();
         }
 
         private createDraggableTable(header: JQuery): JQuery {
-            var dragtable = $("<table/>");
+            var table = $("<table/>");
             var thead = $("<thead/>");
             var tbody = $("<tbody/>");
-            var row = $("<tr/>");
-            var content = $("<th/>");
-            $(dragtable).addClass($(this.container).attr("class"));
-            $(dragtable).width($(header).width());
-            $(thead).html($(header).html());
-            $(content).append(thead);
-            $(row).append(content);
-            $(tbody).append(row);
-            $(dragtable).append(tbody);
-            return dragtable;
+            var tr = $("<tr/>");
+            var th = $("<th/>");
+            $(table).addClass($(this.container).attr("class"));
+            $(table).width($(header).width());
+            $(th).html($(header).html());
+            $(tr).append(th);
+            $(thead).append(tr);
+            $(table).append(thead);
+            $(table).append(tbody);
+            return table;
         }
 
         private insertCells(cells: Element[], columnIndex: Number, callback: Function) {
@@ -141,9 +133,22 @@ module Anterec {
             });
         }
     }
+
+    class UserEvent {
+        public event: Event;
+        public isTouchEvent: Boolean;
+
+        constructor(event: Event) {
+            this.event = event;
+            if (event.originalEvent && event.originalEvent.touches && event.originalEvent.changedTouches) {
+                this.event = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+                this.isTouchEvent = true;
+            }
+        }
+    }
 }
 jQuery.fn.extend({
-    dragtable(): Anterec.DragTable  {
-        return new Anterec.DragTable(this);
+    jsdragtable(): Anterec.JsDragTable  {
+        return new Anterec.JsDragTable(this);
     }
 });
