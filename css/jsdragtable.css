@@ -1,4 +1,4 @@
-table[data-table-type="dragtable"] {
+table.jsdragtable {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
