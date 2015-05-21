@@ -105,7 +105,6 @@ module Anterec {
             $(".jsdragtable-contents").remove();
             this.draggableContainer = null;
             this.selectedHeader = null;
-            this.rebind();
         }
 
         private createDraggableTable(header: JQuery): JQuery {
