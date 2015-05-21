@@ -10,6 +10,7 @@ module Anterec {
         constructor(target: JQuery) {
             this.container = target;
             this.rebind();
+            $(this.container).addClass("jsdragtable");
         }
 
         private rebind(): void {
