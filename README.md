@@ -6,3 +6,5 @@ A simple JQuery extension for enabling draggable columns on tables. This works o
 ```
 $({selector}).jsdragtable();
 ```
+
+An example is shown on [jsfiddle](http://jsfiddle.net/brentj73/hs2n71mo/).
