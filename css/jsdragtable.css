@@ -4,11 +4,15 @@ table[data-table-type="dragtable"] {
     -moz-user-select: none;
 }
 
-.dragtable-contents {
+.jsdragtable-contents {
     background: #fff;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     box-shadow: 2px 2px 5px #aaa;
     padding: 0;
+}
+
+.jsdragtable-contents table {
+    margin-bottom: 0;
 }
